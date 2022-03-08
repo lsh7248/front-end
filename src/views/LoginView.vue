@@ -16,11 +16,11 @@
                     <h4 class="text-center mt-4">
                       Ensure your kate id for registration
                     </h4>
-                    <v-form>
+                    <v-form id="login-form">
                       <v-text-field
-                        v-model="userId"
+                        v-model="userName"
                         label="Kate 사번"
-                        name="Email"
+                        name="username"
                         prepend-icon="mdi-account"
                         type="text"
                         color="primary accent-3"
@@ -38,11 +38,7 @@
                     </v-form>
                   </v-card-text>
                   <div class="text-center mt-3">
-                    <v-btn
-                      rounded
-                      color="primary accent-3"
-                      dark
-                      @click="loginSubmit"
+                    <v-btn rounded color="primary accent-3" dark @click="login"
                       >로그인</v-btn
                     >
                   </div>
@@ -91,7 +87,7 @@
                     <v-form>
                       <v-text-field
                         label="사번"
-                        v-model="userId"
+                        v-model="userName"
                         name="code"
                         prepend-icon="mdi-account-clock"
                         type="text"
@@ -146,7 +142,8 @@
 </template>
 
 <script>
-import {mapMutations} from "vuex";
+// import {mapMutations} from "vuex";
+
 export default {
   data: () => ({
     authList: [
@@ -158,10 +155,10 @@ export default {
     userAuth: null,
     step: 1,
     items: ["관리자", "임원", "스탭", "직원"],
-    userId: null,
     userName: null,
     userPhone: null,
     userPassword: null,
+    me: {},
   }),
   props: {
     source: String,
@@ -172,25 +169,20 @@ export default {
   unmounted() {},
 
   methods: {
-    ...mapMutations("auth", ["saveUserContainer"]),
-    loginSubmit() {
-      console.log("login init...");
-      let saveData = {};
-      saveData.userId = this.userId;
-      saveData.userPassword = this.userPassword;
-      this.saveUserContainer(saveData);
-      console.log("Saving User Data Completed...");
-      this.$router.push("/");
-    },
-    registerSubmit() {
-      console.log("register init...");
-      let saveData = {};
-      saveData.userId = this.userId;
-      saveData.userPassword = this.userPassword;
-      saveData.userPhone = this.userPhone;
-      saveData.userAuth = this.userAuth;
-      console.log(saveData);
-      console.log(this.$store.state.count);
+    login() {
+      console.log("login() ...");
+      const postData = new FormData(document.getElementById("login-form"));
+      this.$axios
+        .post("/api/login/", postData)
+        .then((res) => {
+          console.log("LOGIN POST RES", res);
+          alert(`user ${res.data.username} login OK`);
+          this.me = res.data;
+        })
+        .catch((err) => {
+          console.log("LOGIN POST ERR.RESPONSE", err.response);
+          alert("LOGIN Fail");
+        });
     },
   },
 };
