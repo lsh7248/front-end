@@ -25,6 +25,18 @@ export default {
   data: () => ({
     //
   }),
+
+  beforeCreate() {
+    this.$store.commit("initialzeStore");
+
+    const access = this.$store.state.aceess;
+
+    if (access) {
+      this.$axios.default.headers.common["Authorization"] = "JWT" + access;
+    } else {
+      this.$axios.default.headers.common["Authorization"] = "";
+    }
+  },
   computed: {
     ...mapState("auth", ["isLogin"]),
   },

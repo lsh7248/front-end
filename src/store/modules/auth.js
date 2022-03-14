@@ -6,6 +6,8 @@ const auth = {
       userPassword: null,
       isLogin: false,
     },
+    access: "",
+    refresh: "",
   },
   getters: {
     getUserContainer(state) {
@@ -18,6 +20,16 @@ const auth = {
       state.userContainer.userId = payload.userId;
       state.userContainer.userPassword = payload.userPassword;
       state.isLogin = true;
+    },
+    initializeStore(state) {
+      if (localStorage.getItem("access")) {
+        state.access = localStorage.getItem("access");
+      } else {
+        state.access = "";
+      }
+    },
+    setAccess(state, access) {
+      state.access = access;
     },
   },
   actions: {},

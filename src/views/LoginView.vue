@@ -16,9 +16,10 @@
                     <h4 class="text-center mt-4">
                       Ensure your kate id for registration
                     </h4>
-                    <v-form id="login-form">
+                    <v-form id="login-form" @submit.prevent="login">
                       <v-text-field
-                        v-model="userName"
+                        v-model="loginForm.userID"
+                        id="username"
                         label="Kate 사번"
                         name="username"
                         prepend-icon="mdi-account"
@@ -27,7 +28,7 @@
                       />
 
                       <v-text-field
-                        v-model="userPassword"
+                        v-model="loginForm.userPassword"
                         id="password"
                         label="비밀번호"
                         name="password"
@@ -84,42 +85,63 @@
                     <h4 class="text-center mt-4">
                       Ensure your email for registration
                     </h4>
-                    <v-form>
+                    <v-form id="register-form">
                       <v-text-field
                         label="사번"
-                        v-model="userName"
-                        name="code"
+                        v-model="registerForm.userID"
+                        name="username"
                         prepend-icon="mdi-account-clock"
+                        :rules="[(v) => !!v || 'ID is required']"
                         type="text"
                         color="primary accent-3"
                       />
                       <v-text-field
                         label="이름"
-                        v-model="userName"
-                        name="name"
+                        v-model="registerForm.userName"
+                        name="first_name"
+                        :rules="[(v) => !!v || 'Name is required']"
                         prepend-icon="mdi-account"
                         type="text"
                         color="primary accent-3"
                       />
 
                       <v-text-field
-                        v-model="userPhone"
-                        label="전화번호"
-                        name="phone-number"
-                        prepend-icon="mdi-phone"
-                        type="password"
+                        v-model="registerForm.userEmail"
+                        label="이메일"
+                        name="email"
+                        :rules="[(v) => !!v || 'Email is required']"
+                        prepend-icon="mdi-email"
                         color="primary accent-3"
                       />
                       <v-select
-                        v-model="userAuth"
+                        v-model="registerForm.userAuth"
                         :items="authList"
                         item-text="name"
                         item-value="value"
                         :rules="[(v) => !!v || 'Auth is required']"
                         label="요청권한"
-                        prepend-icon="mdi-lock"
+                        prepend-icon="mdi-account-lock"
                         return-object
-                      ></v-select>
+                      >
+                      </v-select>
+                      <v-text-field
+                        v-model="registerForm.userPassword"
+                        label="비밀번호"
+                        name="password"
+                        :rules="[(v) => !!v || 'Password is required']"
+                        prepend-icon="mdi-lock"
+                        type="password"
+                        color="primary accent-3"
+                      />
+                      <v-text-field
+                        v-model="registerForm.userPassword2"
+                        label="비밀번호 확인"
+                        name="password2"
+                        :rules="[(v) => !!v || 'Password-confirm is required']"
+                        prepend-icon="mdi-lock-plus"
+                        type="password"
+                        color="primary accent-3"
+                      />
                     </v-form>
                   </v-card-text>
                   <div class="text-center mt-n5">
@@ -142,23 +164,30 @@
 </template>
 
 <script>
-// import {mapMutations} from "vuex";
+import {mapMutations} from "vuex";
 
 export default {
   data: () => ({
     authList: [
       {name: "관리자", value: "ADMIN"},
-      {name: "스탭", value: "STAP"},
-      {name: "임원", value: "MASTER"},
+      {name: "스탭", value: "STAFF"},
+      {name: "임원", value: "EXECE"},
       {name: "직원", value: "USER"},
     ],
-    userAuth: null,
     step: 1,
     items: ["관리자", "임원", "스탭", "직원"],
-    userName: null,
-    userPhone: null,
-    userPassword: null,
-    me: {},
+    registerForm: {
+      userID: "",
+      userName: "",
+      userEmail: "",
+      userAuth: "",
+      userPassword: "",
+      userPassword2: "",
+    },
+    loginForm: {
+      userID: "",
+      userPassword: "",
+    },
   }),
   props: {
     source: String,
@@ -169,19 +198,54 @@ export default {
   unmounted() {},
 
   methods: {
+    ...mapMutations("auth", ["setAccess"]),
     login() {
       console.log("login() ...");
-      const postData = new FormData(document.getElementById("login-form"));
+      this.$axios.defaults.headers.common["Authorization"] = "";
+      localStorage.removeItem("access");
+
+      const formData = {
+        user_id: this.loginForm.userID,
+        password: this.loginForm.userPassword,
+      };
+      console.log(formData);
       this.$axios
-        .post("/api/login/", postData)
+        .post("/api/jwt/create/", formData)
         .then((res) => {
-          console.log("LOGIN POST RES", res);
-          alert(`user ${res.data.username} login OK`);
+          console.log(res);
+
+          const access = res.data.access;
+          this.setAccess(access);
+          this.$axios.defaults.headers.common["Authorization"] =
+            "JWT " + access;
+          localStorage.setItem("access", access);
+          this.$router.push("/");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    registerSubmit() {
+      console.log("register init...");
+      const formData = {
+        name: this.registerForm.userName,
+        email: this.registerForm.userEmail,
+        organization: this.registerForm.userAuth.value,
+        user_id: this.registerForm.userID,
+        password: this.registerForm.userPassword,
+        re_password: this.registerForm.userPassword2,
+      };
+      console.log(formData);
+      this.$axios
+        .post("/api/users/", formData)
+        .then((res) => {
+          console.log("REGISTER POST RES", res);
+          alert(`user ${res.data.name} register OK`);
           this.me = res.data;
         })
         .catch((err) => {
-          console.log("LOGIN POST ERR.RESPONSE", err.response);
-          alert("LOGIN Fail");
+          console.log("REGISTER POST ERR.RESPONSE", err.response);
+          alert("REGISTER Fail ");
         });
     },
   },
