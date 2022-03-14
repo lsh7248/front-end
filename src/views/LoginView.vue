@@ -198,7 +198,7 @@ export default {
   unmounted() {},
 
   methods: {
-    ...mapMutations("auth", ["setAccess"]),
+    ...mapMutations("auth", ["setAccess", "setRefresh"]),
     login() {
       console.log("login() ...");
       this.$axios.defaults.headers.common["Authorization"] = "";
@@ -215,10 +215,13 @@ export default {
           console.log(res);
 
           const access = res.data.access;
+          const refresh = res.data.refresh;
           this.setAccess(access);
+          this.setRefresh(refresh);
           this.$axios.defaults.headers.common["Authorization"] =
             "JWT " + access;
           localStorage.setItem("access", access);
+          localStorage.setItem("refresh", refresh);
           this.$router.push("/");
         })
         .catch((err) => {
