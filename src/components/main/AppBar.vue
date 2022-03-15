@@ -19,14 +19,24 @@
       <v-icon>mdi-heart</v-icon>
     </v-btn>
 
-    <v-btn icon>
-      <v-icon>mdi-dots-vertical</v-icon>
-    </v-btn>
+    <v-menu bottom left>
+      <template v-slot:activator="{on, attrs}">
+        <v-btn icon color="yellow" v-bind="attrs" v-on="on">
+          <v-icon>mdi-dots-vertical</v-icon>
+        </v-btn>
+      </template>
+
+      <v-list>
+        <v-list-item v-for="(item, i) in appItems" :key="i" @click="logout">
+          <v-list-item-title>{{ item.title }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
 
     <template v-slot:extension>
       <v-tabs align-with-title>
         <v-tab
-          v-for="(item, index) in tabitems"
+          v-for="(item, index) in tabItems"
           :key="index"
           link
           :to="item.to"
@@ -45,8 +55,9 @@ export default {
 
   data: () => ({
     drawer: false,
+    appItems: [{title: "로그아웃"}],
 
-    tabitems: [
+    tabItems: [
       {
         name: "OneView",
         to: "/",
@@ -72,6 +83,32 @@ export default {
   methods: {
     drawerClick() {
       bus.$emit("DRAWER_CLICK", this.drawer);
+    },
+    logout() {
+      console.log("logout init...");
+      // this.$axios.defaults.headers.common["Authorization"] = "";
+
+      const formData = {
+        refresh_token: localStorage.getItem("refresh"),
+      };
+      console.log("Expire refresh token: ", formData.refresh);
+      localStorage.removeItem("access");
+      localStorage.removeItem("refresh");
+
+      console.log(formData);
+      this.$axios
+        .post("/api/logout/", formData)
+        .then((res) => {
+          console.log("logout completed...", res);
+
+          localStorage.removeItem("access");
+          localStorage.removeItem("refresh");
+          this.$axios.defaults.headers.common["Authorization"] = "";
+          this.$router.push("/login");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     },
   },
 };

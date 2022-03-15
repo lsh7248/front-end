@@ -10,6 +10,12 @@ const auth = {
     refresh: "",
   },
   getters: {
+    getAccess(state) {
+      return state.access;
+    },
+    getRefresh(state) {
+      return state.refresh;
+    },
     // getUserContainer(state) {
     //   return state.userContainer;
     // },

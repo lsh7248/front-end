@@ -27,28 +27,27 @@ export default {
   }),
 
   beforeCreate() {
-    this.$store.commit("initialzeStore");
-
-    const access = this.aceess;
+    this.$store.commit("auth/initializeStore");
+    const access = this.$store.state.auth.access;
 
     if (access) {
-      this.$axios.default.headers.common["Authorization"] = "JWT" + access;
+      this.$axios.defaults.headers.common["Authorization"] = "JWT " + access;
     } else {
-      this.$axios.default.headers.common["Authorization"] = "";
+      this.$axios.defaults.headers.common["Authorization"] = "";
     }
   },
 
   mounted() {
     setInterval(() => {
       this.getAccess();
-    }, 60000);
+    }, 100000);
   },
   computed: {
     ...mapState("auth", ["access", "refresh"]),
   },
 
   methods: {
-    ...mapMutations("auth", ["setAccess"]),
+    ...mapMutations("auth", ["setAccess", "setRefresh", "initializeStore"]),
     getAccess() {
       const accessData = {
         refresh: this.refresh,
@@ -58,11 +57,16 @@ export default {
         .post("/api/jwt/refresh/", accessData)
         .then((res) => {
           const access = res.data.access;
+          const refresh = res.data.refresh;
 
-          console.log(access);
+          console.log("New access Token: ", access);
+          console.log("New refresh Token: ", refresh);
 
           localStorage.setItem("access", access);
           this.setAccess(access);
+
+          localStorage.setItem("refresh", refresh);
+          this.setRefresh(refresh);
         })
         .catch((err) => {
           console.log(err);
