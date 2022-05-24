@@ -11,14 +11,6 @@
 
     <v-spacer></v-spacer>
 
-    <v-btn icon>
-      <v-icon>mdi-magnify</v-icon>
-    </v-btn>
-
-    <v-btn icon>
-      <v-icon>mdi-heart</v-icon>
-    </v-btn>
-
     <v-menu bottom left>
       <template v-slot:activator="{on, attrs}">
         <v-btn icon color="yellow" v-bind="attrs" v-on="on">
@@ -59,24 +51,24 @@ export default {
 
     tabItems: [
       {
-        name: "OneView",
-        to: "/",
-      },
-      {
-        name: "대쉬보드",
+        name: "대시보드",
         to: "/dashboard",
       },
       {
-        name: "지도분석",
+        name: "VOC 분석",
         to: "/map",
       },
       {
-        name: "상세분석",
-        to: "/detail",
+        name: "VOC 상세분석",
+        to: "/notice",
       },
       {
         name: "게시판",
-        to: "/notice",
+        to: "/",
+      },
+      {
+        name: "관리자",
+        to: "/login",
       },
     ],
   }),
@@ -86,12 +78,10 @@ export default {
     },
     logout() {
       console.log("logout init...");
-      // this.$axios.defaults.headers.common["Authorization"] = "";
-
       const formData = {
         refresh_token: localStorage.getItem("refresh"),
       };
-      console.log("Expire refresh token: ", formData.refresh);
+      console.log("Expire refresh token: ", formData.refresh_token);
       localStorage.removeItem("access");
       localStorage.removeItem("refresh");
 
